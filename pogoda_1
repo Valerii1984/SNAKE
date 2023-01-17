@@ -1,0 +1,37 @@
+import pyowm
+import telebot
+from pyowm.utils.config import get_default_config
+
+config_dict = get_default_config()
+config_dict['language'] = 'ru'
+
+
+owm = pyowm.OWM('fb701f4d9406c944164739c3bb8ae006', config_dict)
+bot = telebot.TeleBot("5817814620:AAFToF5w7Y1RiVOb9Rf7DmCGNJQKu2TJ0x4", parse_mode=None)
+
+
+@bot.message_handler(func=lambda m: True)
+
+def start(message):
+    mess = f"Привет, <b>{message.from_user.first_name} {message.from_user.last_name}</b>"
+    bot.send_message(message.chat.id, mess, parse_mode='html')
+
+def echo_all(message):
+    mess = f"Привет, <b>{message.from_user.first_name} {message.from_user.last_name}</b>"
+    bot.send_message(message.chat.id, mess, parse_mode='html')
+    mgr = owm.weather_manager()
+    observation = mgr.weather_at_place(message.text)
+    w = observation.weather
+    #print(w.wind()['speed'], w.temperature('celsius')['temp'])
+    weather_info = "В городе " + message.text + " сейчас " +  w.detailed_status + "\n"
+    weather_info += "Температура: " + str(w.temperature('celsius')['temp']) + ' C' + "\n"
+    weather_info += "Скорость ветра: " + str(w.wind()['speed']) + "м/с" + "\n"
+    #w.humidity  # 87
+    #w.rain  # {}
+    #w.heat_index  # None
+    #w.clouds  # 75
+    bot.reply_to(message, weather_info)
+
+
+
+bot.infinity_polling()
